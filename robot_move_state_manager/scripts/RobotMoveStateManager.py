@@ -4,13 +4,12 @@
 from math import cos, sin
 import cv2
 import numpy as np
-import open3d as o3d
 
 import rospy
 from tf import transformations
 from gazebo_msgs.srv import GetModelState
 
-class RobotPositionVisualizer(object):
+class RobotMoveStateManager(object):
     def __init__(self):
         self.robot_name = None
         self.robot_num = None
@@ -80,7 +79,7 @@ class RobotPositionVisualizer(object):
         forward_direction_norm = np.linalg.norm(forward_direction)
 
         if forward_direction_norm == 0:
-            print("RobotPositionVisualizer::getForwardDirection :")
+            print("RobotMoveStateManager::getForwardDirection :")
             print("forward_direction_norm is 0!")
             return None
 
@@ -197,56 +196,11 @@ class RobotPositionVisualizer(object):
                 break
         return True
 
-    def showPosition3D(self):
-        robot_color = [255, 0, 0]
-
-        axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(
-            size=2.0, origin=[0, 0, 0])
-        point_cloud = o3d.geometry.PointCloud()
-
-        vis = o3d.visualization.Visualizer()
-        vis.create_window(window_name="RobotPositionVisualizer3D")
-        render_option = vis.get_render_option()
-        render_option.background_color = np.array([0, 0, 0])
-        render_option.point_size = 50
-        vis.add_geometry(axis_pcd)
-        vis.add_geometry(point_cloud)
-
-        while True:
-            robot_state_list = self.getAllRobotState()
-            if robot_state_list is None:
-                print("RobotPositionVisualizer::showPosition3D :")
-                print("getAllRobotState failed!")
-                return False
-
-            points = []
-            colors = []
-
-            for robot_state in robot_state_list:
-                points.append([
-                    robot_state.pose.position.x,
-                    robot_state.pose.position.y,
-                    robot_state.pose.position.z
-                ])
-                colors.append(robot_color)
-
-            point_cloud.points = o3d.utility.Vector3dVector(np.array(points))
-            point_cloud.colors = o3d.utility.Vector3dVector(np.array(colors) / 255.0)
-
-            vis.update_geometry(point_cloud)
-            vis.poll_events()
-            vis.update_renderer()
-
-            if ord('q') == cv2.waitKey(100):
-                break
-        return True
-
 if __name__ == "__main__":
     robot_name = "kinect_camera_"
     robot_num = 1
 
-    robot_position_visualizer = RobotPositionVisualizer()
-    robot_position_visualizer.loadRobot(robot_name, robot_num)
-    robot_position_visualizer.showPosition2D()
-    #  robot_position_visualizer.showPosition3D()
+    robot_move_state_manager = RobotMoveStateManager()
+    robot_move_state_manager.loadRobot(robot_name, robot_num)
+    robot_move_state_manager.showPosition2D()
 
