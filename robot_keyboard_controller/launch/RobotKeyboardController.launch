@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg="robot_keyboard_controller" name="RobotKeyboardController" type="RobotKeyboardController.py" output="screen"/>
+
+</launch>
+
