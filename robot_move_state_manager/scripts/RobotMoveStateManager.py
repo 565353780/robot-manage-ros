@@ -17,6 +17,8 @@ class RobotMoveStateManager(object):
         self.robot_name = None
         self.robot_num = None
 
+        sleep(10)
+
         self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.tf_logger_proxy = rospy.ServiceProxy('/tensorboard_logger/log_scalar', ScalarToBool)
         return
