@@ -2,12 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from math import cos, sin
-import cv2
 import numpy as np
+from time import time, sleep
 
 import rospy
 from tf import transformations
 from gazebo_msgs.srv import GetModelState
+
+from tensorboard_logger_ros.msg import Scalar
+from tensorboard_logger_ros.srv import ScalarToBool
 
 class RobotMoveStateManager(object):
     def __init__(self):
@@ -15,12 +18,21 @@ class RobotMoveStateManager(object):
         self.robot_num = None
 
         self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        self.tf_logger_proxy = rospy.ServiceProxy('/tensorboard_logger/log_scalar', ScalarToBool)
         return
 
     def loadRobot(self, robot_name, robot_num):
         self.robot_name = robot_name
         self.robot_num = robot_num
         return True
+
+    def logScalar(self, name, step, value):
+        scalar = Scalar()
+        scalar.name = str(name)
+        scalar.step = int(step)
+        scalar.value = float(value)
+        log_success = self.tf_logger_proxy(scalar)
+        return log_success
 
     def getRobotState(self, robot_name):
         robot_state = self.get_model_state_proxy(robot_name, "")
@@ -90,17 +102,17 @@ class RobotMoveStateManager(object):
         robot_state_list = []
 
         if self.robot_name is None:
-            print("RobotPositionVisualizer::getAllRobotState :")
+            print("RobotMoveStateManager::getAllRobotState :")
             print("robot_name is None!")
             return None
 
         if self.robot_num is None:
-            print("RobotPositionVisualizer::getAllRobotState :")
+            print("RobotMoveStateManager::getAllRobotState :")
             print("robot_num is None!")
             return None
 
         if self.robot_num < 1:
-            print("RobotPositionVisualizer::getAllRobotState :")
+            print("RobotMoveStateManager::getAllRobotState :")
             print("robot_num not valid!")
             return None
 
@@ -108,92 +120,114 @@ class RobotMoveStateManager(object):
             current_robot_full_name = self.robot_name + str(robot_idx)
             current_robot_state = self.getRobotState(current_robot_full_name)
             if current_robot_state is None:
-                print("RobotPositionVisualizer::getAllRobotState :")
+                print("RobotMoveStateManager::getAllRobotState :")
                 print("getRobotState for " + current_robot_full_name + " failed!")
                 return None
             robot_state_list.append(current_robot_state)
         return robot_state_list
 
-    def showPosition2D(self):
-        image_width = 1600
-        image_height = 900
-        free_area_width = 50
-        x_min = -8
-        x_max = 7
-        y_min = -9
-        y_max = 9
-        point_size = 5
-        robot_color = (0, 0, 255)
-        boundary_color = (255, 255, 255)
+    def isSameState(self, state_1, state_2):
+        position_diff2_max = 0.0001
+        orientation_diff2_max = 0.0001
 
-        valid_width = image_width - 2 * free_area_width
-        valid_height = image_height - 2 * free_area_width
+        position_1 = state_1.pose.position
+        position_2 = state_2.pose.position
 
-        if valid_width < 1 or valid_height < 1:
-            print("RobotPositionVisualizer::showPosition2D :")
-            print("free_area_width out of range!")
+        position_x_diff = position_1.x - position_2.x
+        position_y_diff = position_1.y - position_2.y
+        position_z_diff = position_1.z - position_2.z
+
+        position_diff2 = \
+            position_x_diff * position_x_diff + \
+            position_y_diff * position_y_diff + \
+            position_z_diff * position_z_diff
+
+        if position_diff2 > position_diff2_max:
             return False
 
-        x_diff = x_max - x_min
-        y_diff = y_max - y_min
+        orientation_1 = state_1.pose.orientation
+        orientation_2 = state_2.pose.orientation
 
-        if x_diff <= 0 or y_diff <= 0:
-            print("RobotPositionVisualizer::showPosition2D :")
-            print("x or y interval not valid!")
+        orientation_x_diff = orientation_1.x - orientation_2.x
+        orientation_y_diff = orientation_1.y - orientation_2.y
+        orientation_z_diff = orientation_1.z - orientation_2.z
+        orientation_w_diff = orientation_1.w - orientation_2.w
+
+        orientation_diff2 = \
+            orientation_x_diff * orientation_x_diff + \
+            orientation_y_diff * orientation_y_diff + \
+            orientation_z_diff * orientation_z_diff + \
+            orientation_w_diff * orientation_w_diff
+
+        if orientation_diff2 > orientation_diff2_max:
             return False
 
-        boundary_polygon_in_world = [
-            [x_min, y_min],
-            [x_min, y_max],
-            [x_max, y_max],
-            [x_max, y_min],
-        ]
+        return True
 
-        half_width = image_width / 2.0
-        half_height = image_height / 2.0
-        x_center = (x_min + x_max) / 2.0
-        y_center = (y_min + y_max) / 2.0
+    def startListenRobotState(self):
+        robot_wait_count_min_time = 10
 
-        scale = min(
-            1.0 * valid_height / x_diff,
-            1.0 * valid_width / y_diff)
+        robot_wait_time_sum = 0
+        log_start_time = time()
+        last_log_time = 0
 
-        def getPointInImage(point_in_world):
-            point_in_image = [
-                int(free_area_width + scale * (point_in_world[0] - x_min)),
-                int(free_area_width + scale * (point_in_world[1] - y_min))
-            ]
-            return point_in_image
+        last_robot_state_list = []
+        robot_wait_count_list = []
+        for _ in range(self.robot_num):
+            robot_wait_count_list.append(0)
 
         while True:
-            robot_state_list = self.getAllRobotState()
-            if robot_state_list is None:
-                print("RobotPositionVisualizer::showPosition2D :")
+            last_start_time = time()
+            sleep(0.1)
+
+            new_robot_state_list = self.getAllRobotState()
+            if new_robot_state_list is None:
+                if len(last_robot_state_list) == 0:
+                    continue
+                print("RobotMoveStateManager::startListenRobotState :")
                 print("getAllRobotState failed!")
-                return False
-
-            image = np.zeros((image_height, image_width, 3), np.uint8)
-
-            boundary_polygon_in_image = []
-            for boundary_point_in_world in boundary_polygon_in_world:
-                boundary_point_in_image = getPointInImage(boundary_point_in_world)
-                boundary_polygon_in_image.append([boundary_point_in_image[1], boundary_point_in_image[0]])
-
-            cv2.polylines(image, [np.array(boundary_polygon_in_image)], True, boundary_color)
-
-            for robot_state in robot_state_list:
-                robot_x_in_world = robot_state.pose.position.x
-                robot_y_in_world = robot_state.pose.position.y
-
-                robot_position_in_world = [robot_x_in_world, robot_y_in_world]
-                robot_position_in_image = getPointInImage(robot_position_in_world)
-
-                cv2.circle(image, (robot_position_in_image[1], robot_position_in_image[0]), point_size, robot_color, 4)
-
-            cv2.imshow("RobotPositionVisualizer2D", image)
-
-            if ord('q') == cv2.waitKey(100):
                 break
+
+            if len(new_robot_state_list) != self.robot_num:
+                print("RobotMoveStateManager::startListenRobotState :")
+                print("new_robot_state_list.size and robot_num not matched!")
+                break
+
+            if len(last_robot_state_list) == 0:
+                last_robot_state_list = new_robot_state_list
+                continue
+
+            for i in range(self.robot_num):
+                if self.isSameState(
+                    last_robot_state_list[i],
+                    new_robot_state_list[i]):
+                    robot_wait_count_list[i] += 1
+                else:
+                    robot_wait_count_list[i] = 0
+
+            last_robot_state_list = new_robot_state_list
+
+            exist_robot_wait = False
+            for robot_wait_count in robot_wait_count_list:
+                if robot_wait_count < robot_wait_count_min_time:
+                    continue
+                exist_robot_wait = True
+                break
+
+            if exist_robot_wait:
+                new_wait_time = time() - last_start_time
+                robot_wait_time_sum += new_wait_time
+
+            new_log_time = int(time() - log_start_time)
+            if new_log_time != last_log_time:
+                last_log_time = new_log_time
+                if not self.logScalar(
+                    "RobotMoveStateManager/robot_wait_time",
+                    time() - log_start_time,
+                    robot_wait_time_sum):
+                    print("RobotMoveStateManager::startListenRobotState :")
+                    print("logScalar failed!")
+                    break
         return True
 
 if __name__ == "__main__":
@@ -202,5 +236,5 @@ if __name__ == "__main__":
 
     robot_move_state_manager = RobotMoveStateManager()
     robot_move_state_manager.loadRobot(robot_name, robot_num)
-    robot_move_state_manager.showPosition2D()
+    robot_move_state_manager.startListenRobotState()
 
