@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from math import cos, sin
+from math import cos, sin, sqrt
 import numpy as np
 from time import time, sleep
 
@@ -17,8 +17,9 @@ class RobotMoveStateManager(object):
         self.robot_name = None
         self.robot_num = None
 
-        sleep(10)
+        self.robot_move_dist_list = None
 
+        sleep(10)
         self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.tf_logger_proxy = rospy.ServiceProxy('/tensorboard_logger/log_scalar', ScalarToBool)
         return
@@ -26,6 +27,10 @@ class RobotMoveStateManager(object):
     def loadRobot(self, robot_name, robot_num):
         self.robot_name = robot_name
         self.robot_num = robot_num
+
+        self.robot_move_dist_list = []
+        for _ in range(self.robot_num):
+            self.robot_move_dist_list.append(0)
         return True
 
     def logScalar(self, name, step, value):
@@ -128,10 +133,7 @@ class RobotMoveStateManager(object):
             robot_state_list.append(current_robot_state)
         return robot_state_list
 
-    def isSameState(self, state_1, state_2):
-        position_diff2_max = 0.0001
-        orientation_diff2_max = 0.0001
-
+    def getPosisionDiff2(self, state_1, state_2):
         position_1 = state_1.pose.position
         position_2 = state_2.pose.position
 
@@ -143,10 +145,9 @@ class RobotMoveStateManager(object):
             position_x_diff * position_x_diff + \
             position_y_diff * position_y_diff + \
             position_z_diff * position_z_diff
+        return position_diff2
 
-        if position_diff2 > position_diff2_max:
-            return False
-
+    def getOrientationDiff2(self, state_1, state_2):
         orientation_1 = state_1.pose.orientation
         orientation_2 = state_2.pose.orientation
 
@@ -160,7 +161,25 @@ class RobotMoveStateManager(object):
             orientation_y_diff * orientation_y_diff + \
             orientation_z_diff * orientation_z_diff + \
             orientation_w_diff * orientation_w_diff
+        return orientation_diff2
 
+    def getPosisionDiff(self, state_1, state_2):
+        position_diff2 = self.getPosisionDiff2(state_1, state_2)
+        return sqrt(position_diff2)
+
+    def getOrientationDiff(self, state_1, state_2):
+        orientation_diff2 = self.getOrientationDiff2(state_1, state_2)
+        return sqrt(orientation_diff2)
+
+    def isSameState(self, state_1, state_2):
+        position_diff2_max = 0.0001
+        orientation_diff2_max = 0.0001
+
+        position_diff2 = self.getPosisionDiff2(state_1, state_2)
+        if position_diff2 > position_diff2_max:
+            return False
+
+        orientation_diff2 = self.getOrientationDiff2(state_1, state_2)
         if orientation_diff2 > orientation_diff2_max:
             return False
 
@@ -207,6 +226,10 @@ class RobotMoveStateManager(object):
                 else:
                     robot_wait_count_list[i] = 0
 
+                self.robot_move_dist_list[i] += self.getPosisionDiff(
+                    last_robot_state_list[i],
+                    new_robot_state_list[i])
+
             last_robot_state_list = new_robot_state_list
 
             exist_robot_wait = False
@@ -228,13 +251,22 @@ class RobotMoveStateManager(object):
                     time() - log_start_time,
                     robot_wait_time_sum):
                     print("RobotMoveStateManager::startListenRobotState :")
-                    print("logScalar failed!")
+                    print("logScalar for robot_wait_time failed!")
                     break
+
+                for i in range(self.robot_num):
+                    if not self.logScalar(
+                        "RobotMoveStateManager/robot" + str(i) + "_move_dist",
+                        time() - log_start_time,
+                        self.robot_move_dist_list[i]):
+                        print("RobotMoveStateManager::startListenRobotState :")
+                        print("logScalar for robot_" + str(i) + "_move_dist failed!")
+                        break
         return True
 
 if __name__ == "__main__":
     robot_name = "kinect_camera_"
-    robot_num = 1
+    robot_num = 3
 
     robot_move_state_manager = RobotMoveStateManager()
     robot_move_state_manager.loadRobot(robot_name, robot_num)
