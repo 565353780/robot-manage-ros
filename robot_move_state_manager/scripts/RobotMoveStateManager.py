@@ -265,8 +265,9 @@ class RobotMoveStateManager(object):
         return True
 
 if __name__ == "__main__":
-    robot_name = "kinect_camera_"
-    robot_num = 3
+    rospy.init_node("RobotMoveStateManager")
+    robot_name = rospy.get_param("/robot_name")
+    robot_num = int(rospy.get_param("/robot_num"))
 
     robot_move_state_manager = RobotMoveStateManager()
     robot_move_state_manager.loadRobot(robot_name, robot_num)

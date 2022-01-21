@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from math import cos, sin
+from time import sleep
 import cv2
 import numpy as np
 import open3d as o3d
@@ -15,6 +16,7 @@ class RobotPositionVisualizer(object):
         self.robot_name = None
         self.robot_num = None
 
+        sleep(10)
         self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         return
 
@@ -242,8 +244,9 @@ class RobotPositionVisualizer(object):
         return True
 
 if __name__ == "__main__":
-    robot_name = "kinect_camera_"
-    robot_num = 1
+    rospy.init_node("RobotPositionVisualizer")
+    robot_name = rospy.get_param("/robot_name")
+    robot_num = int(rospy.get_param("/robot_num"))
 
     robot_position_visualizer = RobotPositionVisualizer()
     robot_position_visualizer.loadRobot(robot_name, robot_num)

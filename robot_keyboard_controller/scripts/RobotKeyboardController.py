@@ -416,6 +416,9 @@ class RobotKeyboardController(object):
         return True
 
 if __name__ == "__main__":
+    rospy.init_node("RobotKeyboardController")
+    robot_name = rospy.get_param("/robot_name")
+
     robot_keyboard_controller = RobotKeyboardController()
-    robot_keyboard_controller.keyBoardControl("kinect_camera_0")
+    robot_keyboard_controller.keyBoardControl(robot_name)
 

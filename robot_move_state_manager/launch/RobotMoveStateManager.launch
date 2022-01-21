@@ -2,7 +2,13 @@
 
 <launch>
 
-  <node pkg="robot_move_state_manager" name="RobotMoveStateManager" type="RobotMoveStateManager.py" output="screen"/>
+  <arg name="robot_name" default="fetch_"/>
+  <arg name="robot_num" default="3"/>
+
+  <node pkg="robot_move_state_manager" name="RobotMoveStateManager" type="RobotMoveStateManager.py" output="screen">
+    <rosparam param="/robot_name" subst_value="True">$(arg robot_name)</rosparam>
+    <rosparam param="/robot_num" subst_value="True">$(arg robot_num)</rosparam>
+  </node>
 
 </launch>
 

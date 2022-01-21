@@ -2,7 +2,11 @@
 
 <launch>
 
-  <node pkg="robot_keyboard_controller" name="RobotKeyboardController" type="RobotKeyboardController.py" output="screen"/>
+  <arg name="robot_name" default="kinect_camera_0"/>
+
+  <node pkg="robot_keyboard_controller" name="RobotKeyboardController" type="RobotKeyboardController.py" output="screen">
+    <rosparam param="/robot_name" subst_value="True">$(arg robot_name)</rosparam>
+  </node>
 
 </launch>
 
