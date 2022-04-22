@@ -190,7 +190,7 @@ class RobotMoveStateManager(object):
 
         robot_wait_time_sum = 0
         log_start_time = time()
-        last_log_time = 0
+        last_log_time = log_start_time
 
         last_robot_state_list = []
         robot_wait_count_list = []
@@ -198,7 +198,6 @@ class RobotMoveStateManager(object):
             robot_wait_count_list.append(0)
 
         while True:
-            last_start_time = time()
             sleep(0.1)
 
             new_robot_state_list = self.getAllRobotState()
