@@ -98,8 +98,8 @@ class RobotMoveStateManager(object):
         forward_direction_norm = np.linalg.norm(forward_direction)
 
         if forward_direction_norm == 0:
-            print("RobotMoveStateManager::getForwardDirection :")
-            print("forward_direction_norm is 0!")
+            print("[ERROR][RobotMoveStateManager::getForwardDirection]")
+            print("\t forward_direction_norm is 0!")
             return None
 
         forward_direction /= forward_direction_norm
@@ -109,26 +109,26 @@ class RobotMoveStateManager(object):
         robot_state_list = []
 
         if self.robot_name is None:
-            print("RobotMoveStateManager::getAllRobotState :")
-            print("robot_name is None!")
+            print("[ERROR][RobotMoveStateManager::getAllRobotState]")
+            print("\t robot_name is None!")
             return None
 
         if self.robot_num is None:
-            print("RobotMoveStateManager::getAllRobotState :")
-            print("robot_num is None!")
+            print("[ERROR][RobotMoveStateManager::getAllRobotState]")
+            print("\t robot_num is None!")
             return None
 
         if self.robot_num < 1:
-            print("RobotMoveStateManager::getAllRobotState :")
-            print("robot_num not valid!")
+            print("[ERROR][RobotMoveStateManager::getAllRobotState]")
+            print("\t robot_num not valid!")
             return None
 
         for robot_idx in range(self.robot_num):
             current_robot_full_name = self.robot_name + str(robot_idx)
             current_robot_state = self.getRobotState(current_robot_full_name)
             if current_robot_state is None:
-                print("RobotMoveStateManager::getAllRobotState :")
-                print("getRobotState for " + current_robot_full_name + " failed!")
+                print("[ERROR][RobotMoveStateManager::getAllRobotState]")
+                print("\t getRobotState for " + current_robot_full_name + " failed!")
                 return None
             robot_state_list.append(current_robot_state)
         return robot_state_list
@@ -205,13 +205,13 @@ class RobotMoveStateManager(object):
             if new_robot_state_list is None:
                 if len(last_robot_state_list) == 0:
                     continue
-                print("RobotMoveStateManager::startListenRobotState :")
-                print("getAllRobotState failed!")
+                print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                print("\t getAllRobotState failed!")
                 break
 
             if len(new_robot_state_list) != self.robot_num:
-                print("RobotMoveStateManager::startListenRobotState :")
-                print("new_robot_state_list.size and robot_num not matched!")
+                print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                print("\t new_robot_state_list.size and robot_num not matched!")
                 break
 
             if len(last_robot_state_list) == 0:
@@ -243,25 +243,27 @@ class RobotMoveStateManager(object):
                 new_wait_time = time() - last_start_time
                 robot_wait_time_sum += new_wait_time
 
-            new_log_time = int(time() - log_start_time)
-            if new_log_time != last_log_time:
-                last_log_time = new_log_time
-                if not self.logScalar(
-                    "RobotMoveStateManager/robot_wait_time",
-                    time() - log_start_time,
-                    robot_wait_time_sum):
-                    print("RobotMoveStateManager::startListenRobotState :")
-                    print("logScalar for robot_wait_time failed!")
-                    break
+            new_log_time = time()
+            if new_log_time == last_log_time:
+                continue
 
-                for i in range(self.robot_num):
-                    if not self.logScalar(
-                        "RobotMoveStateManager/robot" + str(i) + "_move_dist",
-                        time() - log_start_time,
-                        self.robot_move_dist_list[i]):
-                        print("RobotMoveStateManager::startListenRobotState :")
-                        print("logScalar for robot_" + str(i) + "_move_dist failed!")
-                        break
+            last_log_time = new_log_time
+            if not self.logScalar(
+                "RobotMoveStateManager/robot_wait_time",
+                new_log_time - log_start_time,
+                robot_wait_time_sum):
+                print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                print("\t logScalar for robot_wait_time failed!")
+                break
+
+            for i in range(self.robot_num):
+                if not self.logScalar(
+                    "RobotMoveStateManager/robot" + str(i) + "_move_dist",
+                    new_log_time - log_start_time,
+                    self.robot_move_dist_list[i]):
+                    print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                    print("\t logScalar for robot_" + str(i) + "_move_dist failed!")
+                    break
         return True
 
 if __name__ == "__main__":

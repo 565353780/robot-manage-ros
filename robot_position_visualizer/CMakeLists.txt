@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-
-project(
-  robot_position_visualizer
-  LANGUAGES CXX)
+project(robot_position_visualizer)
 
 find_package(catkin REQUIRED COMPONENTS
   std_msgs

@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-
-project(
-  robot_move_state_manager
-  LANGUAGES CXX)
+project(robot_move_state_manager)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
