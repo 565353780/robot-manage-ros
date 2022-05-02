@@ -18,6 +18,7 @@ class RobotMoveStateManager(object):
         self.robot_num = None
 
         self.robot_move_dist_list = None
+        self.robot_wait_time_list = None
 
         sleep(10)
         self.get_model_state_proxy = \
@@ -30,9 +31,8 @@ class RobotMoveStateManager(object):
         self.robot_name = robot_name
         self.robot_num = robot_num
 
-        self.robot_move_dist_list = []
-        for _ in range(self.robot_num):
-            self.robot_move_dist_list.append(0)
+        self.robot_move_dist_list = [0 for _ in range(self.robot_num)]
+        self.robot_wait_time_list = [0 for _ in range(self.robot_num)]
         return True
 
     def logScalar(self, name, step, value):
@@ -190,14 +190,11 @@ class RobotMoveStateManager(object):
     def startListenRobotState(self):
         robot_wait_count_min_time = 10
 
-        robot_wait_time_sum = 0
         log_start_time = time()
         last_log_time = 0
 
         last_robot_state_list = []
-        robot_wait_count_list = []
-        for _ in range(self.robot_num):
-            robot_wait_count_list.append(0)
+        robot_wait_count_list = [0 for _ in range(self.robot_num)]
 
         while True:
             last_start_time = time()
@@ -234,16 +231,11 @@ class RobotMoveStateManager(object):
 
             last_robot_state_list = new_robot_state_list
 
-            exist_robot_wait = False
-            for robot_wait_count in robot_wait_count_list:
-                if robot_wait_count < robot_wait_count_min_time:
+            for i in range(len(robot_wait_count_list)):
+                if robot_wait_count_list[i] < robot_wait_count_min_time:
                     continue
-                exist_robot_wait = True
-                break
-
-            if exist_robot_wait:
                 new_wait_time = time() - last_start_time
-                robot_wait_time_sum += new_wait_time
+                self.robot_wait_time_list[i] += new_wait_time
 
             new_log_time = time()
             if new_log_time == last_log_time:
@@ -266,20 +258,42 @@ class RobotMoveStateManager(object):
                     print("[ERROR][RobotMoveStateManager::startListenRobotState]")
                     print("\t logScalar for robot_" + str(i) + "_move_dist failed!")
                     break
+                if not self.logScalar(
+                    "RobotMoveStateManager/robot" + str(i) + "_wait_time",
+                    new_log_time - log_start_time,
+                    self.robot_wait_time_list[i]):
+                    print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                    print("\t logScalar for robot_" + str(i) + "_wait_time failed!")
+                    break
 
             robot_move_dist_array = np.array(self.robot_move_dist_list)
             robot_move_dist_mean = np.mean(robot_move_dist_array)
             robot_move_dist_std = np.std(robot_move_dist_array)
-            if robot_move_dist_mean == 0:
-                continue
-
-            robot_cov = robot_move_dist_std / robot_move_dist_mean
+            robot_move_dist_load_balance = 0
+            if robot_move_dist_mean > 0:
+                robot_move_dist_load_balance = \
+                    robot_move_dist_std / robot_move_dist_mean
             if not self.logScalar(
-                "RobotMoveStateManager/robot_wait_time",
+                "RobotMoveStateManager/robot_move_dist_load_balance",
                 new_log_time - log_start_time,
-                robot_cov):
+                robot_move_dist_load_balance):
                 print("[ERROR][RobotMoveStateManager::startListenRobotState]")
-                print("\t logScalar for robot_cov failed!")
+                print("\t logScalar for robot_move_dist_load_balance failed!")
+                break
+
+            robot_wait_time_array = np.array(self.robot_wait_time_list)
+            robot_wait_time_mean = np.mean(robot_wait_time_array)
+            robot_wait_time_std = np.std(robot_wait_time_array)
+            robot_wait_time_load_balance = 0
+            if robot_wait_time_mean > 0:
+                robot_wait_time_load_balance = \
+                    robot_wait_time_std / robot_wait_time_mean
+            if not self.logScalar(
+                "RobotMoveStateManager/robot_wait_time_load_balance",
+                new_log_time - log_start_time,
+                robot_wait_time_load_balance):
+                print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                print("\t logScalar for robot_wait_time_load_balance failed!")
                 break
         return True
 
