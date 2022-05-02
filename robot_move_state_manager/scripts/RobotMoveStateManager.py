@@ -20,8 +20,10 @@ class RobotMoveStateManager(object):
         self.robot_move_dist_list = None
 
         sleep(10)
-        self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
-        self.tf_logger_proxy = rospy.ServiceProxy('/tensorboard_logger/log_scalar', ScalarToBool)
+        self.get_model_state_proxy = \
+            rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        self.tf_logger_proxy = \
+            rospy.ServiceProxy('/tensorboard_logger/log_scalar', ScalarToBool)
         return
 
     def loadRobot(self, robot_name, robot_num):
@@ -264,6 +266,21 @@ class RobotMoveStateManager(object):
                     print("[ERROR][RobotMoveStateManager::startListenRobotState]")
                     print("\t logScalar for robot_" + str(i) + "_move_dist failed!")
                     break
+
+            robot_move_dist_array = np.array(self.robot_move_dist_list)
+            robot_move_dist_mean = np.mean(robot_move_dist_array)
+            robot_move_dist_std = np.std(robot_move_dist_array)
+            if robot_move_dist_mean == 0:
+                continue
+
+            robot_cov = robot_move_dist_std / robot_move_dist_mean
+            if not self.logScalar(
+                "RobotMoveStateManager/robot_wait_time",
+                new_log_time - log_start_time,
+                robot_cov):
+                print("[ERROR][RobotMoveStateManager::startListenRobotState]")
+                print("\t logScalar for robot_cov failed!")
+                break
         return True
 
 if __name__ == "__main__":
