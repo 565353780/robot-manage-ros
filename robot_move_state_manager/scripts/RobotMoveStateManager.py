@@ -242,13 +242,6 @@ class RobotMoveStateManager(object):
                 continue
 
             last_log_time = new_log_time
-            if not self.logScalar(
-                "RobotMoveStateManager/robot_wait_time",
-                new_log_time - log_start_time,
-                robot_wait_time_sum):
-                print("[ERROR][RobotMoveStateManager::startListenRobotState]")
-                print("\t logScalar for robot_wait_time failed!")
-                break
 
             for i in range(self.robot_num):
                 if not self.logScalar(
