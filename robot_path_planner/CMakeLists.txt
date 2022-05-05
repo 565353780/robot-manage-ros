@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   genmsg
+  message_generation
   tf2
   tf2_geometry_msgs
   cv_bridge
@@ -15,6 +16,11 @@ find_package(OpenCV REQUIRED)
 add_service_files(
   FILES
   TargetPoseVecToNavPoseVec.srv
+)
+
+add_message_files(
+  FILES
+  PoseVec.msg
 )
 
 generate_messages(

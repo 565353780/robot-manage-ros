@@ -22,6 +22,11 @@ bool RobotPathPlannerServer::getNavPoseVecCallback(
   }
 
   res.nav_pose_vec = nav_pose_vec;
+
+  robot_path_planner::PoseVec nav_pose_vec_copy;
+  nav_pose_vec_copy.pose_vec = nav_pose_vec;
+
+  nav_pose_vec_pub_.publish(nav_pose_vec_copy);
   return true;
 }
 
