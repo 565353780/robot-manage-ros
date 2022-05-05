@@ -10,12 +10,12 @@ public:
   RobotPathPlannerServer() :
     get_pose_list_server_(nh_.advertiseService(
           "robot_path_planner/get_nav_pose_vec",
-          &RobotPathPlannerServer::getNavPoseVecDiffCallback,
+          &RobotPathPlannerServer::getNavPoseVecCallback,
           this))
   {}
 
 private:
-  bool getNavPoseVecDiffCallback(
+  bool getNavPoseVecCallback(
       robot_path_planner::TargetPoseVecToNavPoseVec::Request &req,
       robot_path_planner::TargetPoseVecToNavPoseVec::Response &res);
 
