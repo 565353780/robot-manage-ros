@@ -6,11 +6,56 @@ bool RobotPathPlanner::getNavPoseVec(
     const double& delta_move_dist,
     std::vector<geometry_msgs::Pose>& nav_pose_vec)
 {
+  nav_pose_vec.clear();
+
   if(!updateRotationAngle(delta_rotation_angle))
   {
     std::cout << "[ERROR][RobotPathPlanner::getNavPoseVec]\n" <<
       "\t updateRotationAngle failed!\n";
     return false;
+  }
+
+  if(pose_vec.size() == 0)
+  {
+    return true;
+  }
+
+  nav_pose_vec.emplace_back(pose_vec[0]);
+
+  if(pose_vec.size() == 1)
+  {
+    return true;
+  }
+
+  geometry_msgs::Pose new_pose = nav_pose_vec.back();
+
+  for(size_t i = 1; i < pose_vec.size(); ++i)
+  {
+    const geometry_msgs::Pose& target_pose = pose_vec[i];
+    bool need_face_to_target_pose = false;
+    if(i == pose_vec.size() - 1)
+    {
+      need_face_to_target_pose = true;
+    }
+
+    std::vector<geometry_msgs::Pose> single_nav_pose_vec;
+    if(!getSingleNavPoseVec(
+          new_pose, target_pose, need_face_to_target_pose, single_nav_pose_vec))
+    {
+      std::cout << "[ERROR][RobotPathPlanner::getNavPoseVec]\n" <<
+        "\t getSingleNavPoseVec failed!\n";
+      return false;
+    }
+
+    if(single_nav_pose_vec.size() > 0)
+    {
+      for(const geometry_msgs::Pose& pose : single_nav_pose_vec)
+      {
+        nav_pose_vec.emplace_back(pose);
+      }
+    }
+
+    new_pose = nav_pose_vec.back();
   }
 
   return true;
