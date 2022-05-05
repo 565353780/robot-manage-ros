@@ -8,7 +8,7 @@ bool RobotPathPlanner::getNavPoseVec(
 {
   nav_pose_vec.clear();
 
-  if(!updateRotationAngle(delta_rotation_angle))
+  if(!updateParam(delta_rotation_angle, delta_move_dist))
   {
     std::cout << "[ERROR][RobotPathPlanner::getNavPoseVec]\n" <<
       "\t updateRotationAngle failed!\n";
@@ -61,8 +61,9 @@ bool RobotPathPlanner::getNavPoseVec(
   return true;
 }
 
-bool RobotPathPlanner::updateRotationAngle(
-    const double& delta_rotation_angle)
+bool RobotPathPlanner::updateParam(
+    const double& delta_rotation_angle,
+    const double& delta_move_dist)
 {
   if(delta_rotation_angle <= 0)
   {
@@ -70,12 +71,21 @@ bool RobotPathPlanner::updateRotationAngle(
       "\t delta_rotation_angle <= 0!\n";
     return false;
   }
+  if(delta_move_dist <= 0)
+  {
+    std::cout << "[ERROR][RobotPathPlanner::updateRotationAngle]\n" <<
+      "\t delta_move_dist <= 0!\n";
+    return false;
+  }
 
   delta_rotation_angle_ = delta_rotation_angle;
+  delta_move_dist_ = delta_move_dist;
+
   delta_rotation_quat_ = tf2::Quaternion(
       tf2::Vector3(0, 0, 1), delta_rotation_angle_);
   delta_opposite_rotation_quat_ = tf2::Quaternion(
       tf2::Vector3(0, 0, 1), -delta_rotation_angle_);
+
   return true;
 }
 
@@ -266,9 +276,7 @@ bool RobotPathPlanner::getMovePoseVec(
   geometry_msgs::Point unit_move_direction;
   if(!getUnitPoint(move_direction, unit_move_direction))
   {
-    std::cout << "[ERROR][RobotPathPlanner::getMovePoseVec]\n" <<
-      "\t getUnitPoint failed!\n";
-    return false;
+    return true;
   }
 
   geometry_msgs::Pose new_pose = source_pose;

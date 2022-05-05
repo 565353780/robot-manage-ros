@@ -22,8 +22,9 @@ public:
       std::vector<geometry_msgs::Pose>& nav_pose_vec);
 
 private:
-  bool updateRotationAngle(
-      const double& delta_rotation_angle);
+  bool updateParam(
+      const double& delta_rotation_angle,
+      const double& delta_move_dist);
 
   double getPointNorm2(
       const geometry_msgs::Point& point);
@@ -63,8 +64,9 @@ private:
       std::vector<geometry_msgs::Pose>& nav_pose_vec);
 
 private:
-  double delta_move_dist_;
   double delta_rotation_angle_;
+  double delta_move_dist_;
+
   tf2::Quaternion delta_rotation_quat_;
   tf2::Quaternion delta_opposite_rotation_quat_;
 };
