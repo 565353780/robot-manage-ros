@@ -110,11 +110,13 @@ bool RobotPathPlanner::getUnitPoint(
     const geometry_msgs::Point& source_point,
     geometry_msgs::Point& unit_point)
 {
+  const double norm_min = 1e-3;
+
   const double point_norm = getPointNorm(source_point);
-  if(point_norm == 0)
+  if(point_norm < norm_min)
   {
     std::cout << "[WARN][RobotPathPlanner::getUnitPoint]\n" <<
-      "\t point_norm = 0!\n";
+      "\t point_norm < " << norm_min << "!\n";
     return false;
   }
 
@@ -307,6 +309,7 @@ bool RobotPathPlanner::getMovePoseVec(
 
     new_pose_vec.emplace_back(new_pose);
   }
+
   return true;
 }
 
