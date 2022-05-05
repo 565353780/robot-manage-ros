@@ -115,8 +115,8 @@ bool RobotPathPlanner::getUnitPoint(
   const double point_norm = getPointNorm(source_point);
   if(point_norm < norm_min)
   {
-    std::cout << "[WARN][RobotPathPlanner::getUnitPoint]\n" <<
-      "\t point_norm < " << norm_min << "!\n";
+    // std::cout << "[WARN][RobotPathPlanner::getUnitPoint]\n" <<
+    //   "\t point_norm < " << norm_min << "!\n";
     return false;
   }
 
@@ -183,8 +183,8 @@ bool RobotPathPlanner::getRotatePoseVec(
   geometry_msgs::Point unit_direction;
   if(!getUnitPoint(target_direction, unit_direction))
   {
-    std::cout << "[WARN][RobotPathPlanner::getRotatePoseVec]\n" <<
-      "\t getUnitPoint failed!\n";
+    // std::cout << "[WARN][RobotPathPlanner::getRotatePoseVec]\n" <<
+    //   "\t getUnitPoint failed!\n";
     return true;
   }
 
@@ -278,8 +278,8 @@ bool RobotPathPlanner::getMovePoseVec(
   geometry_msgs::Point unit_move_direction;
   if(!getUnitPoint(move_direction, unit_move_direction))
   {
-    std::cout << "[WARN][RobotPathPlanner::getMovePoseVec]\n" <<
-      "\t getUnitPoint failed!\n";
+    // std::cout << "[WARN][RobotPathPlanner::getMovePoseVec]\n" <<
+    //   "\t getUnitPoint failed!\n";
     return true;
   }
 
