@@ -1,8 +1,8 @@
 #include <robot_path_planner/RobotPathPlannerServer.h>
 
-bool RobotPathPlannerServer::getPoseVecDiffCallback(
-    robot_path_planner::PointVecToPoseVec::Request &req,
-    robot_path_planner::PointVecToPoseVec::Response &res)
+bool RobotPathPlannerServer::getNavPoseVecDiffCallback(
+    robot_path_planner::TargetPoseVecToNavPoseVec::Request &req,
+    robot_path_planner::TargetPoseVecToNavPoseVec::Response &res)
 {
   return true;
 }

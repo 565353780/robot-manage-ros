@@ -14,7 +14,7 @@ find_package(OpenCV REQUIRED)
 
 add_service_files(
   FILES
-  PointVecToPoseVec.srv
+  TargetPoseVecToNavPoseVec.srv
 )
 
 generate_messages(

@@ -1,0 +1,3 @@
+geometry_msgs/Pose[] target_pose_vec
+---
+geometry_msgs/Pose[] nav_pose_vec
