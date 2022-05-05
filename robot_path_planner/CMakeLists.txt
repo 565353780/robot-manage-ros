@@ -27,13 +27,6 @@ catkin_package()
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}_node
-  src/distance_utils/astar_expander.cpp
-  src/distance_utils/dijkstra_expander.cpp
-  src/distance_utils/distance_metric.cpp
-  src/distance_utils/euclidean_distance.cpp
-  src/distance_utils/geodesic_distance.cpp
-  src/grid_map/grid_map_2d.cpp
-  src/path_generator.cpp
   src/RobotPathPlanner.cpp
   src/RobotPathPlannerServer.cpp
   src/RobotPathPlannerServer_node.cpp
