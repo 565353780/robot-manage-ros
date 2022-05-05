@@ -1,4 +1,4 @@
-#include "path_generator.h"
+#include "robot_path_planner/path_generator.h"
 namespace virtual_scan
 {
 const std::optional<std::vector<Eigen::Vector2d>> PathGenerator::generatePath(const GridMap2D& grid_map,

@@ -50,9 +50,10 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>robot_keyboard_controller</build_depend>
+  <build_depend>robot_move_state_manager</build_depend>
+  <build_depend>robot_path_planner</build_depend>
   <build_depend>robot_position_loader</build_depend>
   <build_depend>robot_position_visualizer</build_depend>
-  <build_depend>robot_move_state_manager</build_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

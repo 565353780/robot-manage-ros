@@ -6,6 +6,7 @@
 
 class RobotPathPlanner
 {
+public:
   RobotPathPlanner()
   {}
 
