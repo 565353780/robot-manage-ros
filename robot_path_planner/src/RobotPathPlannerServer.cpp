@@ -6,3 +6,4 @@ bool RobotPathPlannerServer::getPoseVecDiffCallback(
 {
   return true;
 }
+

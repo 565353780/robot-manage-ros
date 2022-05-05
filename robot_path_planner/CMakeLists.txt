@@ -5,6 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   genmsg
+  tf2
+  tf2_geometry_msgs
   cv_bridge
 )
 find_package(Eigen3 REQUIRED)
