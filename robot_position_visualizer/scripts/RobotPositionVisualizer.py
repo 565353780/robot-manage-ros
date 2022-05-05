@@ -17,7 +17,8 @@ class RobotPositionVisualizer(object):
         self.robot_num = None
 
         sleep(10)
-        self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        self.get_model_state_proxy = \
+            rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         return
 
     def loadRobot(self, robot_name, robot_num):

@@ -3,6 +3,7 @@ project(robot_path_planner)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   std_msgs
   genmsg
   message_generation
@@ -57,5 +58,10 @@ target_link_libraries(try_${PROJECT_NAME} ${catkin_LIBRARIES})
 target_compile_features(try_${PROJECT_NAME}
   PRIVATE
     cxx_std_17
+)
+
+catkin_install_python(PROGRAMS
+  scripts/RobotPathVisualizer.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
