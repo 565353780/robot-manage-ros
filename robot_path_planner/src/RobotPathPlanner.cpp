@@ -181,9 +181,9 @@ bool RobotPathPlanner::getRotatePoseVec(
   geometry_msgs::Point unit_direction;
   if(!getUnitPoint(target_direction, unit_direction))
   {
-    std::cout << "[ERROR][RobotPathPlanner::getRotatePoseVec]\n" <<
+    std::cout << "[WARN][RobotPathPlanner::getRotatePoseVec]\n" <<
       "\t getUnitPoint failed!\n";
-    return false;
+    return true;
   }
 
   const double source_pose_face_to_angle =
@@ -276,6 +276,8 @@ bool RobotPathPlanner::getMovePoseVec(
   geometry_msgs::Point unit_move_direction;
   if(!getUnitPoint(move_direction, unit_move_direction))
   {
+    std::cout << "[WARN][RobotPathPlanner::getMovePoseVec]\n" <<
+      "\t getUnitPoint failed!\n";
     return true;
   }
 
