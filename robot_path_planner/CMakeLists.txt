@@ -4,13 +4,21 @@ project(robot_path_planner)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
-  sensor_msgs
-  nav_msgs
   genmsg
   cv_bridge
 )
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
+
+add_service_files(
+  FILES
+  PointVecToPoseVec.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+)
 
 catkin_package()
 

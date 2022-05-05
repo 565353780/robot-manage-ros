@@ -1,0 +1,3 @@
+geometry_msgs/Point[] point_vec
+---
+geometry_msgs/Pose[] pose_vec
