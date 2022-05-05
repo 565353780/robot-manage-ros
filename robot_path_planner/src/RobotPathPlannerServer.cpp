@@ -22,7 +22,6 @@ bool RobotPathPlannerServer::getNavPoseVecCallback(
   }
 
   res.nav_pose_vec = nav_pose_vec;
-
   return true;
 }
 

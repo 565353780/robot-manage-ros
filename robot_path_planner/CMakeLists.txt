@@ -49,3 +49,14 @@ target_compile_features(${PROJECT_NAME}_node
     cxx_std_17
 )
 
+add_executable(try_${PROJECT_NAME}
+  src/try_RobotPathPlannerServer.cpp
+)
+
+target_link_libraries(try_${PROJECT_NAME} ${catkin_LIBRARIES})
+
+target_compile_features(try_${PROJECT_NAME}
+  PRIVATE
+    cxx_std_17
+)
+

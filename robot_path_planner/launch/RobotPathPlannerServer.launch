@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg="robot_path_planner" name="RobotPathPlannerServer" type="robot_path_planner_node" output="screen"/>
+
+</launch>
+
