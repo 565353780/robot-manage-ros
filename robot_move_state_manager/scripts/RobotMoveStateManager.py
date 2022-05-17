@@ -276,17 +276,16 @@ class RobotMoveStateManager(object):
 
             robot_wait_time_array = np.array(self.robot_wait_time_list)
             robot_wait_time_mean = np.mean(robot_wait_time_array)
-            robot_wait_time_std = np.std(robot_wait_time_array)
-            robot_wait_time_load_balance = 0
+            robot_wait_time_percentage = 0
             if robot_wait_time_mean > 0:
-                robot_wait_time_load_balance = \
-                    robot_wait_time_std / robot_wait_time_mean
+                robot_wait_time_percentage = \
+                    robot_wait_time_mean / (new_log_time - log_start_time)
             if not self.logScalar(
-                "RobotMoveStateManager/robot_wait_time_load_balance",
+                "RobotMoveStateManager/robot_wait_time_percentage",
                 new_log_time - log_start_time,
-                robot_wait_time_load_balance):
+                robot_wait_time_percentage):
                 print("[ERROR][RobotMoveStateManager::startListenRobotState]")
-                print("\t logScalar for robot_wait_time_load_balance failed!")
+                print("\t logScalar for robot_wait_time_percentage failed!")
                 break
         return True
 
