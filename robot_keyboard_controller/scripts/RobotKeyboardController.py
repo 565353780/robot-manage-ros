@@ -10,7 +10,9 @@ from tf import transformations
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import GetModelState, SetModelState
 
+
 class RobotKeyboardController(object):
+
     def __init__(self):
         self.move_forward_key = "e"
         self.move_left_key = "s"
@@ -30,18 +32,18 @@ class RobotKeyboardController(object):
         self.rotate_angle = 10
 
         self.move_key_list = [
-            self.move_forward_key, self.move_back_key,
-            self.move_left_key, self.move_right_key,
-            self.move_up_key, self.move_down_key
+            self.move_forward_key, self.move_back_key, self.move_left_key,
+            self.move_right_key, self.move_up_key, self.move_down_key
         ]
         self.rotate_key_list = [
-            self.turn_left_key, self.turn_right_key,
-            self.look_up_key, self.look_down_key,
-            self.head_left_key, self.head_right_key
+            self.turn_left_key, self.turn_right_key, self.look_up_key,
+            self.look_down_key, self.head_left_key, self.head_right_key
         ]
 
-        self.get_model_state_proxy = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
-        self.set_model_state_proxy = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        self.get_model_state_proxy = rospy.ServiceProxy(
+            '/gazebo/get_model_state', GetModelState)
+        self.set_model_state_proxy = rospy.ServiceProxy(
+            '/gazebo/set_model_state', SetModelState)
         return
 
     def getRobotState(self, robot_name):
@@ -62,36 +64,33 @@ class RobotKeyboardController(object):
         return set_state.success
 
     def getEulerAngleFromQuaternion(self, quaternion):
-        (roll, pitch, yaw) = transformations.euler_from_quaternion([
-            quaternion[0], quaternion[1], quaternion[2], quaternion[3]])
+        (roll, pitch, yaw) = transformations.euler_from_quaternion(
+            [quaternion[0], quaternion[1], quaternion[2], quaternion[3]])
 
         return np.array([roll, pitch, yaw])
 
     def getQuaternionFromEulerAngle(self, euler_angle):
         quaternion = transformations.quaternion_from_euler(
             euler_angle[0], euler_angle[1], euler_angle[2])
-        return np.array([quaternion[0], quaternion[1], quaternion[2], quaternion[3]])
+        return np.array(
+            [quaternion[0], quaternion[1], quaternion[2], quaternion[3]])
 
     def getRotationMatrixFromEulerAngle(self, euler_angle):
-        R_x = np.array([
-            [1, 0, 0],
-            [0, cos(euler_angle[0]), -sin(euler_angle[0])],
-            [0, sin(euler_angle[0]), cos(euler_angle[0])]
-        ])
-                    
-        R_y = np.array([
-            [cos(euler_angle[1]), 0, sin(euler_angle[1])],
-            [0, 1, 0],
-            [-sin(euler_angle[1]), 0, cos(euler_angle[1])]
-        ])
-                    
-        R_z = np.array([
-            [cos(euler_angle[2]), -sin(euler_angle[2]), 0],
-            [sin(euler_angle[2]), cos(euler_angle[2]), 0],
-            [0, 0, 1]
-        ])
-                    
-        rotation_matrix = np.dot(R_z, np.dot( R_y, R_x ))
+        R_x = np.array([[1, 0, 0],
+                        [0, cos(euler_angle[0]), -sin(euler_angle[0])],
+                        [0, sin(euler_angle[0]),
+                         cos(euler_angle[0])]])
+
+        R_y = np.array([[cos(euler_angle[1]), 0,
+                         sin(euler_angle[1])], [0, 1, 0],
+                        [-sin(euler_angle[1]), 0,
+                         cos(euler_angle[1])]])
+
+        R_z = np.array([[cos(euler_angle[2]), -sin(euler_angle[2]), 0],
+                        [sin(euler_angle[2]),
+                         cos(euler_angle[2]), 0], [0, 0, 1]])
+
+        rotation_matrix = np.dot(R_z, np.dot(R_y, R_x))
         return rotation_matrix
 
     def getForwardDirection(self, robot_state):
@@ -100,17 +99,17 @@ class RobotKeyboardController(object):
         robot_orientation = robot_state.pose.orientation
 
         robot_quaternion = [
-            robot_orientation.x,
-            robot_orientation.y,
-            robot_orientation.z,
-            robot_orientation.w]
+            robot_orientation.x, robot_orientation.y, robot_orientation.z,
+            robot_orientation.w
+        ]
 
         euler_angle = self.getEulerAngleFromQuaternion(robot_quaternion)
 
         rotation_matrix = self.getRotationMatrixFromEulerAngle(euler_angle)
 
         forward_direction = np.dot(rotation_matrix, x_axis_direction)
-        forward_direction = np.array([forward_direction[0], forward_direction[1], 0])
+        forward_direction = np.array(
+            [forward_direction[0], forward_direction[1], 0])
         forward_direction_norm = np.linalg.norm(forward_direction)
 
         if forward_direction_norm == 0:
@@ -136,7 +135,9 @@ class RobotKeyboardController(object):
             print("RobotKeyboardController::getLeftDirection :")
             print("forward_direction is None!")
             return None
-        left_direction = [-forward_direction[1], forward_direction[0], forward_direction[2]]
+        left_direction = [
+            -forward_direction[1], forward_direction[0], forward_direction[2]
+        ]
         return left_direction
 
     def getRightDirection(self, robot_state):
@@ -145,7 +146,9 @@ class RobotKeyboardController(object):
             print("RobotKeyboardController::getRightDirection :")
             print("forward_direction is None!")
             return None
-        right_direction = [forward_direction[1], -forward_direction[0], forward_direction[2]]
+        right_direction = [
+            forward_direction[1], -forward_direction[0], forward_direction[2]
+        ]
         return right_direction
 
     def getUpDirection(self, robot_state):
@@ -164,10 +167,8 @@ class RobotKeyboardController(object):
         ]
 
         robot_orientation = [
-            robot_state.pose.orientation.x,
-            robot_state.pose.orientation.y,
-            robot_state.pose.orientation.z,
-            robot_state.pose.orientation.w
+            robot_state.pose.orientation.x, robot_state.pose.orientation.y,
+            robot_state.pose.orientation.z, robot_state.pose.orientation.w
         ]
 
         if not self.setRobotState(robot_name, new_position, robot_orientation):
@@ -178,16 +179,13 @@ class RobotKeyboardController(object):
 
     def rotateRobot(self, robot_name, robot_state, rotate_angle, rotate_axis):
         robot_position = [
-            robot_state.pose.position.x,
-            robot_state.pose.position.y,
+            robot_state.pose.position.x, robot_state.pose.position.y,
             robot_state.pose.position.z
         ]
 
         robot_orientation = [
-            robot_state.pose.orientation.x,
-            robot_state.pose.orientation.y,
-            robot_state.pose.orientation.z,
-            robot_state.pose.orientation.w
+            robot_state.pose.orientation.x, robot_state.pose.orientation.y,
+            robot_state.pose.orientation.z, robot_state.pose.orientation.w
         ]
 
         euler_angle = self.getEulerAngleFromQuaternion(robot_orientation)
@@ -222,7 +220,8 @@ class RobotKeyboardController(object):
             print("move_direction is None!")
             return False
 
-        if not self.moveRobot(robot_name, robot_state, move_direction, move_dist):
+        if not self.moveRobot(robot_name, robot_state, move_direction,
+                              move_dist):
             print("RobotKeyboardController::moveForward :")
             print("moveRobot failed!")
             return False
@@ -237,7 +236,8 @@ class RobotKeyboardController(object):
             print("move_direction is None!")
             return False
 
-        if not self.moveRobot(robot_name, robot_state, move_direction, move_dist):
+        if not self.moveRobot(robot_name, robot_state, move_direction,
+                              move_dist):
             print("RobotKeyboardController::moveBack :")
             print("moveRobot failed!")
             return False
@@ -252,7 +252,8 @@ class RobotKeyboardController(object):
             print("move_direction is None!")
             return False
 
-        if not self.moveRobot(robot_name, robot_state, move_direction, move_dist):
+        if not self.moveRobot(robot_name, robot_state, move_direction,
+                              move_dist):
             print("RobotKeyboardController::moveLeft :")
             print("moveRobot failed!")
             return False
@@ -267,7 +268,8 @@ class RobotKeyboardController(object):
             print("move_direction is None!")
             return False
 
-        if not self.moveRobot(robot_name, robot_state, move_direction, move_dist):
+        if not self.moveRobot(robot_name, robot_state, move_direction,
+                              move_dist):
             print("RobotKeyboardController::moveRight :")
             print("moveRobot failed!")
             return False
@@ -282,7 +284,8 @@ class RobotKeyboardController(object):
             print("move_direction is None!")
             return False
 
-        if not self.moveRobot(robot_name, robot_state, move_direction, move_dist):
+        if not self.moveRobot(robot_name, robot_state, move_direction,
+                              move_dist):
             print("RobotKeyboardController::moveUp :")
             print("moveRobot failed!")
             return False
@@ -297,7 +300,8 @@ class RobotKeyboardController(object):
             print("move_direction is None!")
             return False
 
-        if not self.moveRobot(robot_name, robot_state, move_direction, move_dist):
+        if not self.moveRobot(robot_name, robot_state, move_direction,
+                              move_dist):
             print("RobotKeyboardController::moveDown :")
             print("moveRobot failed!")
             return False
@@ -317,7 +321,8 @@ class RobotKeyboardController(object):
 
         right_rotate_angle = -rotate_angle
 
-        if not self.rotateRobot(robot_name, robot_state, right_rotate_angle, 2):
+        if not self.rotateRobot(robot_name, robot_state, right_rotate_angle,
+                                2):
             print("RobotKeyboardController::turnRight :")
             print("rotateRobot failed!")
             return False
@@ -408,18 +413,18 @@ class RobotKeyboardController(object):
                 self.keyBoardMove(robot_name, self.move_dist, keyboard_input)
                 continue
             if keyboard_input in self.rotate_key_list:
-                self.keyBoardRotate(robot_name, self.rotate_angle, keyboard_input)
+                self.keyBoardRotate(robot_name, self.rotate_angle,
+                                    keyboard_input)
                 continue
 
             print("RobotKeyboardController::keyBoardControl :")
             print("keyboard_input out of range!")
         return True
 
+
 if __name__ == "__main__":
     rospy.init_node("RobotKeyboardController")
     robot_name = rospy.get_param("/robot_name")
-    robot_name += "0"
 
     robot_keyboard_controller = RobotKeyboardController()
     robot_keyboard_controller.keyBoardControl(robot_name)
-
